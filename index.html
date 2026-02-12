@@ -766,35 +766,43 @@ const SUBJECT_STRUCTURE = {
 
 const KEYWORDS_BOLD = ['核心素养', '立德树人', '教学评一致性', '减负提质'];
 
-const els = {
-  subjectNav: document.getElementById('subjectNav'),
-  subnavTabs: document.getElementById('subnavTabs'),
-  subnavMoreBtn: document.getElementById('subnavMoreBtn'),
-  subnavMenu: document.getElementById('subnavMenu'),
-  subjectPanels: document.getElementById('subjectPanels'),
-  currentTitle: document.getElementById('currentTitle'),
-  heroTitle: document.getElementById('heroTitle'),
-  scrollContainer: document.getElementById('scrollContainer'),
-  themeToggle: document.getElementById('themeToggle'),
-  themeLink: document.getElementById('dark-theme'),
-  toast: document.getElementById('toast'),
-  quizModal: document.getElementById('quizModal'),
-  quizClose: document.getElementById('quizClose'),
-  quizSetup: document.getElementById('quizSetup'),
-  quizMain: document.getElementById('quizMain'),
-  authModal: document.getElementById('authModal'),
-  authInput: document.getElementById('authInput'),
-  authBtn: document.getElementById('authBtn'),
-  authError: document.getElementById('authError'),
-};
+const els = {};
+
+function initEls() {
+  els.subjectNav = document.getElementById('subjectNav');
+  els.subnavTabs = document.getElementById('subnavTabs');
+  els.subnavMoreBtn = document.getElementById('subnavMoreBtn');
+  els.subnavMenu = document.getElementById('subnavMenu');
+  els.subjectPanels = document.getElementById('subjectPanels');
+  els.currentTitle = document.getElementById('currentTitle');
+  els.heroTitle = document.getElementById('heroTitle');
+  els.scrollContainer = document.getElementById('scrollContainer');
+  els.themeToggle = document.getElementById('themeToggle');
+  els.themeLink = document.getElementById('dark-theme');
+  els.toast = document.getElementById('toast');
+  els.quizModal = document.getElementById('quizModal');
+  els.quizClose = document.getElementById('quizClose');
+  els.quizSetup = document.getElementById('quizSetup');
+  els.quizMain = document.getElementById('quizMain');
+  els.authModal = document.getElementById('authModal');
+  els.authInput = document.getElementById('authInput');
+  els.authBtn = document.getElementById('authBtn');
+  els.authError = document.getElementById('authError');
+}
 
 function checkAuth() {
   const isAuth = sessionStorage.getItem('wztr_auth') === 'true';
   if (isAuth) {
-    els.authModal.hidden = true;
+    if (els.authModal) {
+        els.authModal.hidden = true;
+        els.authModal.style.display = 'none';
+    }
     return true;
   }
-  els.authModal.hidden = false;
+  if (els.authModal) {
+      els.authModal.hidden = false;
+      els.authModal.style.display = 'flex';
+  }
   return false;
 }
 
@@ -805,16 +813,21 @@ function initAuth() {
     const pwd = els.authInput.value;
     if (pwd === '123456') {
       sessionStorage.setItem('wztr_auth', 'true');
-      els.authModal.hidden = true;
+      if (els.authModal) {
+          els.authModal.style.display = 'none';
+          els.authModal.hidden = true;
+      }
     } else {
-      els.authError.hidden = false;
-      els.authInput.value = '';
-      els.authInput.focus();
+      if (els.authError) els.authError.hidden = false;
+      if (els.authInput) {
+          els.authInput.value = '';
+          els.authInput.focus();
+      }
     }
   };
 
-  els.authBtn.addEventListener('click', doAuth);
-  els.authInput.addEventListener('keydown', (e) => {
+  if (els.authBtn) els.authBtn.addEventListener('click', doAuth);
+  if (els.authInput) els.authInput.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') doAuth();
   });
 }
@@ -1614,6 +1627,7 @@ function wireSearch() {
 }
 
 async function main() {
+  initEls();
   initAuth(); // Block until auth
   initTheme();
   // wireSearch(); // Removed
