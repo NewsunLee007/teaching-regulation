@@ -452,6 +452,44 @@ strong { font-weight: 600; color: var(--ink); }
 .regTable th:last-child,
 .regTable td:last-child{ border-right: none; }
 
+/* Auth Modal */
+.auth-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: var(--bg);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.auth-box {
+  background: var(--paper);
+  padding: 40px;
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+  text-align: center;
+  max-width: 400px;
+  width: 90%;
+  border: 1px solid var(--border);
+}
+.auth-box h2 { margin: 0 0 16px 0; color: var(--ink); font-family: var(--font-display); }
+.auth-box p { color: var(--muted); margin: 0 0 24px 0; }
+.auth-input-group { display: flex; gap: 10px; justify-content: center; }
+.auth-input-group input {
+  padding: 10px 14px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--ink);
+  outline: none;
+  font-size: 16px;
+}
+.auth-input-group input:focus { border-color: var(--accent); }
+.auth-error { color: #e74c3c !important; margin-top: 16px !important; font-size: 14px; }
+
 /* Responsive */
 @media (max-width: 768px) {
   .layout { flex-direction: column; }
@@ -495,9 +533,33 @@ strong { font-weight: 600; color: var(--ink); }
   }
   .topbar { padding: 0 16px; height: 50px; }
   .subnavBar { padding: 0 16px; overflow-x: auto; }
-  .reader { padding: 20px 16px 80px; }
+  /* Fix Scrolling Issue */
+  .main {
+    flex: 1;
+    min-height: 0;
+    overflow: hidden; /* Ensure main container doesn't overflow */
+  }
+  .contentWrap {
+    flex: 1;
+    overflow: hidden; /* Ensure contentWrap respects flex */
+  }
+  .reader {
+    padding: 20px 16px 80px;
+    height: 100%; /* Force height */
+    overflow-y: auto; /* Enable scroll */
+    -webkit-overflow-scrolling: touch;
+  }
   .hero { margin-bottom: 24px; }
   .hero h1 { font-size: 28px; }
+  /* Fix Subnav Menu Position on Mobile */
+  .subnavMenu {
+    position: fixed; /* Change from absolute to fixed */
+    top: 110px; /* Adjust based on topbar + subnav height */
+    right: 16px;
+    left: 16px; /* Full width minus padding */
+    width: auto;
+    max-height: 60vh;
+  }
 }
 
 /* Dark Mode */
@@ -657,6 +719,17 @@ html[data-theme="dark"] .subnavTab[aria-current="true"]{
   </div>
 
   <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+  <div id="authModal" class="auth-modal">
+    <div class="auth-box">
+      <h2>请输入访问密码</h2>
+      <p>内部资料，请输入密码继续阅读</p>
+      <div class="auth-input-group">
+        <input type="password" id="authInput" placeholder="请输入密码" />
+        <button id="authBtn" class="btn">进入系统</button>
+      </div>
+      <p id="authError" class="auth-error" hidden>密码错误，请重试</p>
+    </div>
+  </div>
   <script>const SUBJECTS = [
   { key: 'management', title: '课程管理', header: '温州市初中课程教学管理指引（2025年版）' },
   { key: 'chinese', title: '语文', header: '温州市初中语文教学常规（2025年版）' },
@@ -709,7 +782,42 @@ const els = {
   quizClose: document.getElementById('quizClose'),
   quizSetup: document.getElementById('quizSetup'),
   quizMain: document.getElementById('quizMain'),
+  authModal: document.getElementById('authModal'),
+  authInput: document.getElementById('authInput'),
+  authBtn: document.getElementById('authBtn'),
+  authError: document.getElementById('authError'),
 };
+
+function checkAuth() {
+  const isAuth = sessionStorage.getItem('wztr_auth') === 'true';
+  if (isAuth) {
+    els.authModal.hidden = true;
+    return true;
+  }
+  els.authModal.hidden = false;
+  return false;
+}
+
+function initAuth() {
+  if (checkAuth()) return;
+
+  const doAuth = () => {
+    const pwd = els.authInput.value;
+    if (pwd === '123456') {
+      sessionStorage.setItem('wztr_auth', 'true');
+      els.authModal.hidden = true;
+    } else {
+      els.authError.hidden = false;
+      els.authInput.value = '';
+      els.authInput.focus();
+    }
+  };
+
+  els.authBtn.addEventListener('click', doAuth);
+  els.authInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') doAuth();
+  });
+}
 
 let app = {
   mdAll: '',
@@ -1506,6 +1614,7 @@ function wireSearch() {
 }
 
 async function main() {
+  initAuth(); // Block until auth
   initTheme();
   // wireSearch(); // Removed
   wireTableActions();
